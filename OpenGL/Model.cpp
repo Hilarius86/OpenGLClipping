@@ -12,6 +12,15 @@ Model::Model(const char* file)
 
 	// Traverse all nodes
 	traverseNode(0);
+
+	for (unsigned int i = 0; i < meshes.size(); i++)
+	{
+		auto [min, max] = meshes[i].Mesh::CalcBounds();
+		std::cout << "Min/Diff/Max X,Y,Z" << '\n';
+		std::cout << min.x << ' ' << min.y << ' ' << min.z << '\n';
+		std::cout << max.x-min.x << ' ' << max.y - min.y << ' ' << max.z - min.z << '\n';
+		std::cout << max.x << ' ' << max.y << ' ' << max.z << '\n';
+	}
 }
 
 void Model::Draw(Shader& shader, Camera& camera)
@@ -34,10 +43,27 @@ void Model::loadMesh(unsigned int indMesh)
 	// Use accessor indices to get all vertices components
 	std::vector<float> posVec = getFloats(JSON["accessors"][posAccInd]);
 	std::vector<glm::vec3> positions = groupFloatsVec3(posVec);
+	for (size_t i = 0; i < positions.size(); i++)
+	{
+		/*float temp = positions[i].x;
+		positions[i].x = positions[i].z;
+		positions[i].z = -temp;*/
+
+		// x => Höhe
+		// y => Rechts
+		//positions[i].y = 0;
+	}
 	std::vector<float> normalVec = getFloats(JSON["accessors"][normalAccInd]);
 	std::vector<glm::vec3> normals = groupFloatsVec3(normalVec);
 	std::vector<float> texVec = getFloats(JSON["accessors"][texAccInd]);
 	std::vector<glm::vec2> texUVs = groupFloatsVec2(texVec);
+	for (size_t i = 0; i < texUVs.size(); i++)
+	{
+		// s und t bzw u und v tauschen
+		float temp = texUVs[i].s;
+		texUVs[i].s = texUVs[i].t;
+		texUVs[i].t = temp;
+	}
 
 	// Combine all the vertex components and also get the indices and textures
 	std::vector<Vertex> vertices = assembleVertices(positions, normals, texUVs);
@@ -258,6 +284,13 @@ std::vector<Texture> Model::getTextures()
 		{
 			// Load diffuse texture
 			if (texPath.find("baseColor") != std::string::npos)
+			{
+				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());
+				textures.push_back(diffuse);
+				loadedTex.push_back(diffuse);
+				loadedTexName.push_back(texPath);
+			}
+			else if (texPath.find("diffuse") != std::string::npos)
 			{
 				Texture diffuse = Texture((fileDirectory + texPath).c_str(), "diffuse", loadedTex.size());
 				textures.push_back(diffuse);

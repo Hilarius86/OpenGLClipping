@@ -50,6 +50,8 @@ int main()
 	// Shader for the outlining model
 	Shader outliningProgram("outlining.vert", "outlining.frag");
 
+	Shader PlaneCut("Schnittebene.vert", "Schnittebene.frag");
+
 	// Take care of all the light related things
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -64,13 +66,6 @@ int main()
 
 	
 
-	// Enables the Depth Buffer
-	glEnable(GL_DEPTH_TEST);
-	// Enables the Stencil Buffer
-	glEnable(GL_STENCIL_TEST);
-	// Sets rules for outcomes of stecil tests
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
 	// Creates camera object
 	Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
 
@@ -83,11 +78,11 @@ int main()
 	*/
 	std::string parentDir = (fs::current_path().fs::path::parent_path()).string();
 	std::string modelPath = "/Resources/YoutubeOpenGL 15 - Stencil Buffer/models/crow/scene.gltf";
-	std::string outlinePath = "/Resources/YoutubeOpenGL 15 - Stencil Buffer/models/crow-outline/scene.gltf";
+	//std::string outlinePath = "/Resources/YoutubeOpenGL 15 - Stencil Buffer/models/crow-outline/scene.gltf";
 	
 	// Load in models
 	Model model((parentDir + modelPath).c_str());
-	Model outline((parentDir + outlinePath).c_str());
+	//Model outline((parentDir + outlinePath).c_str());	
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -102,45 +97,100 @@ int main()
 		// Updates and exports the camera matrix to the Vertex Shader
 		camera.updateMatrix(45.0f, 0.1f, 100.0f);
 
-
-
-		// Make it so the stencil test always passes
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		// Enable modifying of the stencil buffer
-		glStencilMask(0xFF);
-		// Draw the normal model
-		model.Draw(shaderProgram, camera);
-
-		// Make it so only the pixels without the value 1 pass the test
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		// Disable modifying of the stencil buffer
-		glStencilMask(0x00);
-		// Disable the depth buffer
-		glDisable(GL_DEPTH_TEST);
-
-
-		// First method from the tutorial
-		//outliningProgram.Activate();
-		//glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 1.08f);
-		//model.Draw(outliningProgram, camera);
+		// Animiere die Ebene
+		float time = glfwGetTime();
+		float offset = sin(time) * 2.0f - 2; // animiert zwischen -2 und +2
 		
-		// Second method from the tutorial
-		//outliningProgram.Activate();
-		//glUniform1f(glGetUniformLocation(outliningProgram.ID, "outlining"), 0.08f);
-		//model.Draw(outliningProgram, camera);
-		
-		// Third method from the tutorial
-		outline.Draw(outliningProgram, camera);
-
-
-		// Enable modifying of the stencil buffer
-		glStencilMask(0xFF);
-		// Clear stencil buffer
-		glStencilFunc(GL_ALWAYS, 0, 0xFF);
-		// Enable the depth buffer
+		// Bereite das Zeichnen vor
 		glEnable(GL_DEPTH_TEST);
+		
+		glDepthMask(GL_TRUE);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+		// Ganzes Objekt bis zur Ebene
+		PlaneCut.Activate();
+		float a = 1.0f;
+		float b = 0.0f;
+		float c = 0.0f;
+		float d = -offset;
+		//float d = 0.0f;
+		glUniform4f(glGetUniformLocation(PlaneCut.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+		glUniform4f(glGetUniformLocation(PlaneCut.ID, "plane"), a, b, c, d);
+		glUniform1f(glGetUniformLocation(PlaneCut.ID, "mode"), 0.0f); // Mode 0    --   >0 ==> discard
+		model.Draw(PlaneCut, camera);
+
+		// Zeichne die andere Seite für den Stencil
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+		// Ohne Farbe und Depth, damit später die Ebene gezeichnet werden kann
+		glDepthMask(GL_FALSE);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+		PlaneCut.Activate();
+		glUniform4f(glGetUniformLocation(PlaneCut.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+		glUniform4f(glGetUniformLocation(PlaneCut.ID, "plane"), a, b, c, d);
+		glUniform1f(glGetUniformLocation(PlaneCut.ID, "mode"), 1.0f); // Mode 1    --   >0 ==> stencil
+		model.Draw(PlaneCut, camera);
 
 
+
+		// Generate Schnittebene
+		std::vector <Vertex> points;
+		points.emplace_back(glm::vec3(offset,  0.0f, -10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset, 30.0f,  10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset, 30.0f, -10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset,  0.0f,  10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+
+		/*points.emplace_back(glm::vec3(offset,    0.0f, -10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset,   30.0f, -10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset,   30.0f,   0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset,    0.0f,   0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset+5, 30.0f,  10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(offset+5,  0.0f,  10.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));*/
+
+		std::vector <unsigned int> indices(6);
+		indices[0] = 0;
+		indices[1] = 1;
+		indices[2] = 2;
+		indices[3] = 3;
+		indices[4] = 1;
+		indices[5] = 0;
+
+		/*std::vector <unsigned int> indices(12);
+		indices[0]  = 0;
+		indices[1]  = 2;
+		indices[2]  = 1;
+		indices[3]  = 3;
+		indices[4]  = 2;
+		indices[5]  = 0;
+		indices[6]  = 2;
+		indices[7]  = 3;
+		indices[8]  = 5;
+		indices[9]  = 5;
+		indices[10] = 4;
+		indices[11] = 2;*/
+
+		std::vector<Texture> textures;
+		Mesh CutPlane(points, indices, textures);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_TRUE);
+		glStencilFunc(GL_EQUAL, 1, 0xFF); // Nur wo Stencil == 1
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Nichts mehr verändern
+
+
+		// Ebene ohne Rückseiten
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+		CutPlane.Draw(shaderProgram, camera);
+
+
+
+		// Hinterher wieder ausschalten
+		glDisable(GL_STENCIL_TEST);
+		glDisable(GL_CULL_FACE);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
@@ -148,11 +198,10 @@ int main()
 		glfwPollEvents();
 	}
 
-
-
 	// Delete all the objects we've created
 	shaderProgram.Delete();
 	outliningProgram.Delete();
+	PlaneCut.Delete();
 	// Delete window before ending the program
 	glfwDestroyWindow(window);
 	// Terminate GLFW before ending the program
