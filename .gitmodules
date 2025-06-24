@@ -1,0 +1,3 @@
+[submodule "opengl-tutorials"]
+	path = opengl-tutorials
+	url = https://github.com/VictorGordan/opengl-tutorials.git
