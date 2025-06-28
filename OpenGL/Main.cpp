@@ -110,7 +110,7 @@ int main()
 
 		// Animiere die Ebene
 		float time = glfwGetTime();
-		float offset = sin(time) * 5.0f - 3; // -8 .. -2
+		float offset = sin(time) * 8.0f - 3; // -8 .. -2
 		//float offset = sin(time)*0.5+0.5;
 
 		std::vector<glm::vec2> linePoints = { {x1 + offset, z1}, {x1 + offset, z2}, {x2 + offset, z3}};
@@ -129,6 +129,9 @@ int main()
 
 		// Bereite das Zeichnen vor
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 		
 		glDepthMask(GL_TRUE);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -147,10 +150,9 @@ int main()
 		glUniform1i(glGetUniformLocation(PlaneCut.ID, "mode"), 0);
 		model.Draw(PlaneCut, camera);
 
-		// Zeichne die andere Seite für den Stencil
-		glEnable(GL_STENCIL_TEST);
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		// Zeichne die andere Seite für den Stencil		
+		glStencilFunc(GL_EQUAL, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 
 		// Ohne Farbe und Depth, damit später die Ebene gezeichnet werden kann
 		glDepthMask(GL_FALSE);
@@ -198,7 +200,7 @@ int main()
 		Mesh CutPlane(points, indices, textures);
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		glDepthMask(GL_TRUE);
-		glStencilFunc(GL_EQUAL, 1, 0xFF); // Nur wo Stencil == 1
+		glStencilFunc(GL_EQUAL, 2, 0xFF); // Nur wo Stencil == 1
 		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Nichts mehr verändern
 
 
@@ -213,6 +215,8 @@ int main()
 		// Hinterher wieder ausschalten
 		glDisable(GL_STENCIL_TEST);
 		glDisable(GL_CULL_FACE);
+		glDeleteBuffers(1, &buffer);
+		glDeleteTextures(1, &tex);
 
 		// Swap the back buffer with the front buffer
 		glfwSwapBuffers(window);
