@@ -57,13 +57,48 @@ void Model::loadMesh(unsigned int indMesh)
 	std::vector<glm::vec3> normals = groupFloatsVec3(normalVec);
 	std::vector<float> texVec = getFloats(JSON["accessors"][texAccInd]);
 	std::vector<glm::vec2> texUVs = groupFloatsVec2(texVec);
+
+	glm::vec2 min{ 10.0f, 10.0f };
+	glm::vec2 max{ -10.0f, -10.0f };
+
 	for (size_t i = 0; i < texUVs.size(); i++)
 	{
 		// s und t bzw u und v tauschen
 		float temp = texUVs[i].s;
 		texUVs[i].s = texUVs[i].t;
 		texUVs[i].t = temp;
+
+
+		//if (texUVs[i].s > 1.0f)
+		//{
+		//	texUVs[i].s -= 1.0f;
+		//}if (texUVs[i].t > 1.0f)
+		//{
+		//	texUVs[i].t -= 1.0f;
+		//}
+
+		if (min.s > texUVs[i].s)
+		{
+			min.s = texUVs[i].s;
+		}
+		if (min.t > texUVs[i].t)
+		{
+			min.t = texUVs[i].t;
+		}
+
+		if (max.s < texUVs[i].s)
+		{
+			max.s = texUVs[i].s;
+		}
+		if (max.t < texUVs[i].t)
+		{
+			max.t = texUVs[i].t;
+		}
+		
 	}
+	std::cout << "min/max, s / t" << '\n';
+	std::cout << min.s << " " << max.s << '\n';
+	std::cout << min.t << " " << max.t << '\n';
 
 	// Combine all the vertex components and also get the indices and textures
 	std::vector<Vertex> vertices = assembleVertices(positions, normals, texUVs);
