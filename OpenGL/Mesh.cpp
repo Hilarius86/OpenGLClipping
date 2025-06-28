@@ -95,7 +95,7 @@ std::pair<glm::vec3, glm::vec3> Mesh::CalcBounds()
 		}
 		if (vertices[i].position.z > RetMax.z)
 		{
-			RetMax.z = vertices[i].position.y;
+			RetMax.z = vertices[i].position.z;
 		}
 
 		if (vertices[i].position.x < RetMin.x)
@@ -107,7 +107,7 @@ std::pair<glm::vec3, glm::vec3> Mesh::CalcBounds()
 		}
 		if (vertices[i].position.z < RetMin.z)
 		{
-			RetMin.z = vertices[i].position.y;
+			RetMin.z = vertices[i].position.z;
 		}
 	}
 	return { RetMin, RetMax };
