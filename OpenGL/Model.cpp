@@ -45,9 +45,9 @@ void Model::loadMesh(unsigned int indMesh)
 	std::vector<glm::vec3> positions = groupFloatsVec3(posVec);
 	for (size_t i = 0; i < positions.size(); i++)
 	{
-		/*float temp = positions[i].x;
-		positions[i].x = positions[i].z;
-		positions[i].z = -temp;*/
+		float temp = positions[i].x;
+		positions[i].x = -positions[i].z;
+		positions[i].z = temp;
 
 		// x => Höhe
 		// y => Rechts

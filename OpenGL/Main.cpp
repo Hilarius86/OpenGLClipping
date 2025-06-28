@@ -69,7 +69,7 @@ int main()
 
 
 	// Creates camera object
-	Camera camera(width, height, glm::vec3(-10.0f, 40.0f, 50.0f));
+	Camera camera(width, height, glm::vec3(0.0f, 3.0f, 10.0f));
 
 
 	/*
@@ -87,13 +87,13 @@ int main()
 	Model model((parentDir + modelPath).c_str());
 	//Model outline((parentDir + outlinePath).c_str());	
 
-	float x1 =   0.0f;
-	float x2 =   5.0f;
-	float y1 =   0.0f;
-	float y2 =  30.0f;
-	float z1 =  -5.0f;
-	float z2 =   0.0f;
-	float z3 =   7.0f;
+	float x1 =    0.0f;
+	float x2 =    5.0f;
+	float y1 =    0.0f;
+	float y2 =   30.0f;
+	float z1 =  -20.0f;
+	float z2 =    0.0f;
+	float z3 =   20.0f;
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -110,11 +110,8 @@ int main()
 
 		// Animiere die Ebene
 		float time = glfwGetTime();
-		float offset = sin(time) * 4.0f - 2;
+		float offset = sin(time) * 5.0f - 3; // -8 .. -2
 		//float offset = sin(time)*0.5+0.5;
-		
-
-
 
 		std::vector<glm::vec2> linePoints = { {x1 + offset, z1}, {x1 + offset, z2}, {x2 + offset, z3}};
 
@@ -122,7 +119,7 @@ int main()
 		GLuint buffer, tex;
 		glGenBuffers(1, &buffer);
 		glBindBuffer(GL_TEXTURE_BUFFER, buffer);
-		glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec2) * linePoints.size(), linePoints.data(), GL_STATIC_DRAW);
+		glBufferData(GL_TEXTURE_BUFFER, sizeof(glm::vec2) * linePoints.size(), linePoints.data(), GL_DYNAMIC_DRAW);
 
 		glGenTextures(1, &tex);
 		glBindTexture(GL_TEXTURE_BUFFER, tex);
@@ -139,77 +136,77 @@ int main()
 		// Ganzes Objekt bis zur Ebene
 		PlaneCut.Activate();
 		
-		glActiveTexture(GL_TEXTURE0); // Texture Unit 0
+		glActiveTexture(GL_TEXTURE1); // Texture Unit 1
 		glBindTexture(GL_TEXTURE_BUFFER, tex);
 
 		glUniform4f(glGetUniformLocation(PlaneCut.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 		glUniform1i(glGetUniformLocation(PlaneCut.ID, "segmentCount"), linePoints.size());
-		glUniform1i(glGetUniformLocation(PlaneCut.ID, "lineSegments"), 0);
-		glUniform1f(glGetUniformLocation(PlaneCut.ID, "zMin"), -4.22042);
-		glUniform1f(glGetUniformLocation(PlaneCut.ID, "ZMax"), 6.67509);
-		glUniform1i(glGetUniformLocation(PlaneCut.ID, "mode"), 0); // Mode 0    --   >0 ==> discard
+		glUniform1i(glGetUniformLocation(PlaneCut.ID, "lineSegments"), 1);
+		glUniform1f(glGetUniformLocation(PlaneCut.ID, "zMin"), -9.90188);
+		glUniform1f(glGetUniformLocation(PlaneCut.ID, "ZMax"), 6.37344);
+		glUniform1i(glGetUniformLocation(PlaneCut.ID, "mode"), 0);
 		model.Draw(PlaneCut, camera);
 
 		// Zeichne die andere Seite für den Stencil
-		//glEnable(GL_STENCIL_TEST);
-		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		//glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-		//// Ohne Farbe und Depth, damit später die Ebene gezeichnet werden kann
-		//glDepthMask(GL_FALSE);
-		//glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		// Ohne Farbe und Depth, damit später die Ebene gezeichnet werden kann
+		glDepthMask(GL_FALSE);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-		//PlaneCut.Activate();
-		//glActiveTexture(GL_TEXTURE0); // Texture Unit 0
-		//glBindTexture(GL_TEXTURE_BUFFER, tex);
-		//glUniform4f(glGetUniformLocation(PlaneCut.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-		//glUniform1i(glGetUniformLocation(PlaneCut.ID, "segmentCount"), linePoints.size());
-		//glUniform1i(glGetUniformLocation(PlaneCut.ID, "lineSegments"), 0);
-		//glUniform1f(glGetUniformLocation(PlaneCut.ID, "zMin"), -4.22042);
-		//glUniform1f(glGetUniformLocation(PlaneCut.ID, "ZMax"), 6.67509);
-		//glUniform1f(glGetUniformLocation(PlaneCut.ID, "mode"), 1.0f); // Mode 1    --   >0 ==> stencil
-		//model.Draw(PlaneCut, camera);
+		PlaneCut.Activate();
+		glActiveTexture(GL_TEXTURE1); // Texture Unit 1
+		glBindTexture(GL_TEXTURE_BUFFER, tex);
+		glUniform4f(glGetUniformLocation(PlaneCut.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+		glUniform1i(glGetUniformLocation(PlaneCut.ID, "segmentCount"), linePoints.size());
+		glUniform1i(glGetUniformLocation(PlaneCut.ID, "lineSegments"), 1);
+		glUniform1f(glGetUniformLocation(PlaneCut.ID, "zMin"), -9.90188);
+		glUniform1f(glGetUniformLocation(PlaneCut.ID, "ZMax"), 6.37344);
+		glUniform1i(glGetUniformLocation(PlaneCut.ID, "mode"), 1); // Mode 1    --   >0 ==> stencil
+		model.Draw(PlaneCut, camera);
 
 		// -------------- -------------- -------------- -------------- -------------- --------------
 
-		//// Generate Schnittebene
-		//std::vector <Vertex> points;
-		//points.emplace_back(glm::vec3(x1 + offset, y1, z1), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
-		//points.emplace_back(glm::vec3(x1 + offset, y2, z1), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
-		//points.emplace_back(glm::vec3(x1 + offset, y2, z2), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
-		//points.emplace_back(glm::vec3(x1 + offset, y1, z2), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
-		//points.emplace_back(glm::vec3(x1 + offset, y2, z2), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
-		//points.emplace_back(glm::vec3(x1 + offset, y1, z2), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
-		//points.emplace_back(glm::vec3(x2 + offset, y2, z3), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
-		//points.emplace_back(glm::vec3(x2 + offset, y1, z3), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		// Generate Schnittebene
+		std::vector <Vertex> points;
+		points.emplace_back(glm::vec3(x1 + offset, y1, z1), glm::vec3(1.0f,   0.0f, 0.0f  ), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(x1 + offset, y2, z1), glm::vec3(1.0f,   0.0f, 0.0f  ), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(x1 + offset, y2, z2), glm::vec3(1.0f,   0.0f, 0.0f  ), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(x1 + offset, y1, z2), glm::vec3(1.0f,   0.0f, 0.0f  ), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(x1 + offset, y2, z2), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(x1 + offset, y1, z2), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(x2 + offset, y2, z3), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
+		points.emplace_back(glm::vec3(x2 + offset, y1, z3), glm::vec3(0.707f, 0.0f, 0.707f), glm::vec3(0.3f, 0.3f, 0.9f), glm::vec2(0.0f));
 
-		//std::vector <unsigned int> indices(12);
-		//indices[0]  = 0;
-		//indices[1]  = 2;
-		//indices[2]  = 1;
-		//indices[3]  = 3;
-		//indices[4]  = 2;
-		//indices[5]  = 0;
-		//indices[6]  = 4;
-		//indices[7]  = 5;
-		//indices[8]  = 7;
-		//indices[9]  = 7;
-		//indices[10] = 6;
-		//indices[11] = 4;
+		std::vector <unsigned int> indices(12);
+		indices[0]  = 0;
+		indices[1]  = 2;
+		indices[2]  = 1;
+		indices[3]  = 3;
+		indices[4]  = 2;
+		indices[5]  = 0;
+		indices[6]  = 4;
+		indices[7]  = 5;
+		indices[8]  = 7;
+		indices[9]  = 7;
+		indices[10] = 6;
+		indices[11] = 4;
 
-		//std::vector<Texture> textures;
-		//Mesh CutPlane(points, indices, textures);
-		//glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		//glDepthMask(GL_TRUE);
-		//glStencilFunc(GL_EQUAL, 1, 0xFF); // Nur wo Stencil == 1
-		//glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Nichts mehr verändern
+		std::vector<Texture> textures;
+		Mesh CutPlane(points, indices, textures);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_TRUE);
+		glStencilFunc(GL_EQUAL, 1, 0xFF); // Nur wo Stencil == 1
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // Nichts mehr verändern
 
 
-		//// Ebene ohne Rückseiten
-		///*glEnable(GL_CULL_FACE);
-		//glCullFace(GL_BACK);
-		//glFrontFace(GL_CCW);*/
-		//CutPlane.Draw(shaderProgram, camera);
+		// Ebene ohne Rückseiten
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+		CutPlane.Draw(shaderProgram, camera);
 
 		// -------------- -------------- -------------- -------------- -------------- --------------
 
