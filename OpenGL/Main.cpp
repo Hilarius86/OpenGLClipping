@@ -23,6 +23,8 @@ int main()
 	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+
+	glfwWindowHint(GLFW_SAMPLES, 0); // Deaktiviert MSAA
 	// Create a GLFWwindow object of 800 by 800 pixels, naming it "YoutubeOpenGL"
 	GLFWwindow* window = glfwCreateWindow(width, height, "YoutubeOpenGL", NULL, NULL);
 	// Error check if the window fails to create
@@ -67,7 +69,7 @@ int main()
 	
 
 	// Creates camera object
-	Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
+	Camera camera(width, height, glm::vec3(-10.0f, 40.0f, 50.0f));
 
 
 	/*
