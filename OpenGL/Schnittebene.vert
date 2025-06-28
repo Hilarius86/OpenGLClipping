@@ -19,6 +19,7 @@ out vec3 color;
 // Outputs the texture coordinates to the Fragment Shader
 out vec2 texCoord;
 
+out vec3 untransformPos;
 
 
 // Imports the camera matrix
@@ -35,7 +36,8 @@ void main()
 	// calculates current position
 	crntPos = vec3(model * translation * rotation * scale * vec4(aPos, 1.0f));
 	// Assigns the normal from the Vertex Data to "Normal"
-
+	
+	untransformPos = aPos;
 	
 	//mat3 normalMatrix = transpose(inverse(mat3(model)));
 	//Normal = normalize(normalMatrix * Normal);
