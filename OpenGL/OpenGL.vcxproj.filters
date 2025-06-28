@@ -28,6 +28,18 @@
     <None Include="default.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Schnittebene.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Schnittebene.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="outlining.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="outlining.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

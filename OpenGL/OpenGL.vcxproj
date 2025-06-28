@@ -135,7 +135,11 @@
     <None Include="default.vert" />
     <None Include="light.frag" />
     <None Include="light.vert" />
+    <None Include="outlining.frag" />
+    <None Include="outlining.vert" />
     <None Include="packages.config" />
+    <None Include="Schnittebene.frag" />
+    <None Include="Schnittebene.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\3rd\src\glad.c" />
